@@ -1,14 +1,17 @@
-use crate::{ray::Ray, vec3::{self, Point3, Vec3}};
+use std::{rc::Rc};
 
-#[derive(Clone, Default)]
+use crate::{material::Material, ray::Ray, vec3::{self, Point3, Vec3}};
+
+#[derive(Clone)]
 pub struct HitRecord {
     pub point: Point3,
     pub normal: Vec3,
-    pub t: f64
+    pub t: f64,
+    pub material: Rc<dyn Material>,
 }
 
 impl HitRecord {
-    pub fn new(ray: &Ray, root: f64, outward_normal: Vec3) -> Self {
+    pub fn new(ray: &Ray, root: f64, outward_normal: Vec3, material: Rc<dyn Material>) -> Self {
         let t = root;
         let point = ray.at(root);
         let normal = HitRecord::calculate_normal(ray, outward_normal);
@@ -17,6 +20,7 @@ impl HitRecord {
             point,
             normal,
             t,
+            material
         }
     }
 
