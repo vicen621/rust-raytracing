@@ -1,21 +1,19 @@
-use std::io;
-
-use crate::{color::{self, Color}, common, hittable::Hittable, hittable_list::HittableList, ray::Ray, vec3::{Point3, Vec3}};
+use crate::{common, hittable::Hittable, hittable_list::HittableList, ray::Ray, vec3::{Color, Point3, Vec3}};
 
 pub struct Camera {
-    image_width: i32,
-    image_height: i32,
+    image_width: u64,
+    image_height: u64,
     center: Point3,
     horizontal: Vec3,
     vertical: Vec3,
     upper_left_corner: Point3,
-    samples_per_pixel: i32,
-    max_depth: i32
+    samples_per_pixel: u64,
+    max_depth: u64
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32, max_depth: i32) -> Self {
-        let image_height: i32 = (image_width as f64 / aspect_ratio) as i32;
+    pub fn new(aspect_ratio: f64, image_width: u64, samples_per_pixel: u64, max_depth: u64) -> Self {
+        let image_height: u64 = (image_width as f64 / aspect_ratio) as u64;
         let viewport_height = 2.0;
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.0;
@@ -52,14 +50,14 @@ impl Camera {
                     pixel_color += Camera::ray_color(&r, world, self.max_depth);
                 }
 
-                color::write_color(&mut io::stdout(), pixel_color, self.samples_per_pixel);
+                println!("{}", pixel_color.format_color(self.samples_per_pixel));
             }
         }
 
         eprint!("\nDone.\n");
     }
 
-    fn get_ray(&self, i: i32, j: i32) -> Ray {
+    fn get_ray(&self, i: u64, j: u64) -> Ray {
         let delta_horizontal = (i as f64 + common::random_double()) / (self.image_width - 1) as f64;
         let delta_vertical = (j as f64 + common::random_double()) / (self.image_height - 1) as f64;
 
@@ -69,14 +67,14 @@ impl Camera {
         )
     }
 
-    fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
+    fn ray_color(r: &Ray, world: &impl Hittable, depth: u64) -> Color {
         if depth <= 0 {
             return Color::new(0.0, 0.0, 0.0); // Return black if depth is zero
         }
 
         if let Some(hit) = world.hit(r, 0.1, common::INFINITY) {
             let direction = hit.normal + Vec3::random_unit_vector();
-            return 0.5 * Camera::ray_color(&Ray::new(hit.point, direction), world, depth - 1);
+            return 0.2 * Camera::ray_color(&Ray::new(hit.point, direction), world, depth - 1);
         }
 
         let unit_direction = r.direction().unit_vector();

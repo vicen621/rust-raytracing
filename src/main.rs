@@ -7,9 +7,9 @@ fn main() {
     world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: i32 = 400;
-    const SAMPLES_PER_PIXEL: i32 = 100;
-    const MAX_DEPTH: i32 = 50;
+    const IMAGE_WIDTH: u64 = 400;
+    const SAMPLES_PER_PIXEL: u64 = 100;
+    const MAX_DEPTH: u64 = 50;
 
     let camera = Camera::new(ASPECT_RATIO, IMAGE_WIDTH, SAMPLES_PER_PIXEL, MAX_DEPTH);
 
