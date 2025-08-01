@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{color::{self, Color}, common, hittable::{HitRecord, Hittable}, hittable_list::HittableList, ray::Ray, vec3::{Point3, Vec3}};
+use crate::{color::{self, Color}, common, hittable::Hittable, hittable_list::HittableList, ray::Ray, vec3::{Point3, Vec3}};
 
 pub struct Camera {
     image_width: i32,
@@ -70,15 +70,13 @@ impl Camera {
     }
 
     fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
-        let mut rec = HitRecord::new();
-
         if depth <= 0 {
             return Color::new(0.0, 0.0, 0.0); // Return black if depth is zero
         }
 
-        if world.hit(r, 0.1, common::INFINITY, &mut rec) {
-            let direction = Vec3::random_on_hemisphere(rec.normal);
-            return 0.5 * Camera::ray_color(&Ray::new(rec.point, direction), world, depth - 1);
+        if let Some(hit) = world.hit(r, 0.1, common::INFINITY) {
+            let direction = Vec3::random_on_hemisphere(hit.normal);
+            return 0.5 * Camera::ray_color(&Ray::new(hit.point, direction), world, depth - 1);
         }
 
         let unit_direction = r.direction().unit_vector();
