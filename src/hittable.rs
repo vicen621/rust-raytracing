@@ -1,4 +1,4 @@
-use std::{rc::Rc};
+use std::{sync::Arc};
 
 use crate::{material::Material, ray::Ray, vec3::{self, Point3, Vec3}};
 
@@ -7,29 +7,26 @@ pub struct HitRecord {
     pub point: Point3,
     pub normal: Vec3,
     pub t: f64,
-    pub material: Rc<dyn Material>,
+    pub material: Arc<dyn Material>,
+    pub front_face: bool,
 }
 
 impl HitRecord {
-    pub fn new(ray: &Ray, root: f64, outward_normal: Vec3, material: Rc<dyn Material>) -> Self {
-        let t = root;
+    pub fn new(ray: &Ray, root: f64, outward_normal: Vec3, material: Arc<dyn Material>) -> Self {
         let point = ray.at(root);
-        let normal = HitRecord::calculate_normal(ray, outward_normal);
+        let front_face = vec3::dot(ray.direction(), outward_normal) < 0.0;
+        let normal = if front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        };
 
         HitRecord {
             point,
             normal,
-            t,
-            material
-        }
-    }
-
-    fn calculate_normal(r: &Ray, outward_normal: Vec3) -> Vec3 {
-        let front_face = vec3::dot(r.direction(), outward_normal) < 0.0;
-        if front_face {
-            outward_normal
-        } else {
-            -outward_normal
+            t: root,
+            material,
+            front_face,
         }
     }
 }
