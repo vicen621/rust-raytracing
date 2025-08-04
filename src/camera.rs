@@ -48,7 +48,9 @@ impl Camera {
     }
 
     pub fn render(&self, world: &HittableList) {
-        print!("P3\n{} {} \n255\n", self.image_width, self.image_height);
+        println!("P3");
+        println!("{} {} ", self.image_width, self.image_height);
+        println!("255"); // Max color value);
 
         for j in 0..self.image_height {
             // Progress report
