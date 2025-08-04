@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use raytracer::{camera::Camera, hittable_list::HittableList, material::{Lambertian, Metal}, sphere::Sphere, vec3::{Color, Point3}};
+use raytracer::{camera::Camera, hittable_list::HittableList, material::{Dielectric, Lambertian, Metal}, sphere::Sphere, vec3::{Color, Point3}};
 
 fn main() {
     // World
@@ -8,7 +8,7 @@ fn main() {
 
     let material_ground = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
     let material_center = Arc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
-    let material_left = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_left = Arc::new(Dielectric::new(1.5));
     let material_right = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
 
     let ground = Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0, material_ground);

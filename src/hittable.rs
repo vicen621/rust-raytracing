@@ -10,24 +10,21 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub material: Arc<dyn Material>,
+    pub front_face: bool
 }
 
 impl HitRecord {
     pub fn new(ray: &Ray, root: f64, outward_normal: Vec3, material: Arc<dyn Material>) -> Self {
         let t = root;
         let point = ray.at(root);
-        let normal = HitRecord::calculate_normal(ray, outward_normal);
-
-        HitRecord { point, normal, t, material }
-    }
-
-    fn calculate_normal(r: &Ray, outward_normal: Vec3) -> Vec3 {
-        let front_face = vec3::dot(r.direction(), outward_normal) < 0.0;
-        if front_face {
+        let front_face = vec3::dot(ray.direction(), outward_normal) < 0.0;
+        let normal = if front_face {
             outward_normal
         } else {
             -outward_normal
-        }
+        };
+
+        HitRecord { point, normal, t, material, front_face }
     }
 }
 
