@@ -11,9 +11,7 @@ pub type Color = Vec3;
 
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Vec3 {
-            e: [x, y, z]
-        }
+        Vec3 { e: [x, y, z] }
     }
 
     pub fn random() -> Self {
@@ -75,7 +73,7 @@ impl Vec3 {
         self.x() * self.x() + self.y() * self.y() + self.z() * self.z()
     }
 
-    pub fn unit_vector(self) -> Vec3 {
+    pub fn normalize(self) -> Vec3 {
         let len = self.length();
         if len == 0.0 {
             Vec3::origin()
@@ -85,11 +83,29 @@ impl Vec3 {
     }
 
     pub fn format_color(self, samples_per_pixel: u64) -> String {
-        let ir = (256.0 * (self.x() / (samples_per_pixel as f64)).sqrt().clamp(0.0, 0.999)) as u64;
-        let ig = (256.0 * (self.y() / (samples_per_pixel as f64)).sqrt().clamp(0.0, 0.999)) as u64;
-        let ib = (256.0 * (self.z() / (samples_per_pixel as f64)).sqrt().clamp(0.0, 0.999)) as u64;
+        let ir = (256.0
+            * (self.x() / (samples_per_pixel as f64))
+                .sqrt()
+                .clamp(0.0, 0.999)) as u64;
+        let ig = (256.0
+            * (self.y() / (samples_per_pixel as f64))
+                .sqrt()
+                .clamp(0.0, 0.999)) as u64;
+        let ib = (256.0
+            * (self.z() / (samples_per_pixel as f64))
+                .sqrt()
+                .clamp(0.0, 0.999)) as u64;
 
         format!("{} {} {}", ir, ig, ib)
+    }
+
+    pub fn near_zero(&self) -> bool {
+        const EPSILON: f64 = 1e-8;
+        self.x().abs() < EPSILON && self.y().abs() < EPSILON && self.z().abs() < EPSILON
+    }
+
+    pub fn reflect(self, normal: Vec3) -> Vec3 {
+        self - 2.0 * dot(self, normal) * normal
     }
 }
 

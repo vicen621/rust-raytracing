@@ -1,4 +1,10 @@
-use crate::{common, hittable::Hittable, hittable_list::HittableList, ray::Ray, vec3::{Color, Point3, Vec3}};
+use crate::{
+    common,
+    hittable::Hittable,
+    hittable_list::HittableList,
+    ray::Ray,
+    vec3::{Color, Point3, Vec3},
+};
 
 pub struct Camera {
     image_width: u64,
@@ -8,11 +14,16 @@ pub struct Camera {
     vertical: Vec3,
     upper_left_corner: Point3,
     samples_per_pixel: u64,
-    max_depth: u64
+    max_depth: u64,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: u64, samples_per_pixel: u64, max_depth: u64) -> Self {
+    pub fn new(
+        aspect_ratio: f64,
+        image_width: u64,
+        samples_per_pixel: u64,
+        max_depth: u64,
+    ) -> Self {
         let image_height: u64 = (image_width as f64 / aspect_ratio) as u64;
         let viewport_height = 2.0;
         let viewport_width = aspect_ratio * viewport_height;
@@ -32,7 +43,7 @@ impl Camera {
             vertical,
             upper_left_corner,
             samples_per_pixel,
-            max_depth
+            max_depth,
         }
     }
 
@@ -63,7 +74,10 @@ impl Camera {
 
         Ray::new(
             self.center,
-            self.upper_left_corner + delta_horizontal * self.horizontal + delta_vertical * self.vertical - self.center,
+            self.upper_left_corner
+                + delta_horizontal * self.horizontal
+                + delta_vertical * self.vertical
+                - self.center,
         )
     }
 
@@ -72,12 +86,15 @@ impl Camera {
             return Color::new(0.0, 0.0, 0.0); // Return black if depth is zero
         }
 
-        if let Some(hit) = world.hit(r, 0.1, common::INFINITY) {
-            let direction = hit.normal + Vec3::random_unit_vector();
-            return 0.2 * Camera::ray_color(&Ray::new(hit.point, direction), world, depth - 1);
+        if let Some(hit) = world.hit(r, 0.001, common::INFINITY) {
+            if let Some((attenuation, scattered)) = hit.material.scatter(r, &hit) {
+                return attenuation * Camera::ray_color(&scattered, world, depth - 1);
+            }
+
+            return Color::default(); // Return black if no scattering occurs
         }
 
-        let unit_direction = r.direction().unit_vector();
+        let unit_direction = r.direction().normalize();
         let t = 0.5 * (unit_direction.y() + 1.0);
         (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
     }
