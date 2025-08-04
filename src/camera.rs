@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 use crate::{
     common,
     hittable::Hittable,
@@ -55,14 +57,22 @@ impl Camera {
         for j in 0..self.image_height {
             // Progress report
             eprint!("\rScanlines done: {}/{}", j + 1, self.image_height);
-            for i in 0..self.image_width {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-                for _ in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
-                    pixel_color += Camera::ray_color(&r, world, self.max_depth);
-                }
+            let pixel_colors: Vec<_> = (0..self.image_width)
+                .into_par_iter()
+                .map(|i| {
+                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
+                    for _ in 0..self.samples_per_pixel {
+                        let r = self.get_ray(i, j);
+                        pixel_color += Camera::ray_color(&r, world, self.max_depth);
+                    }
+
+                    pixel_color
+                })
+                .collect();
+
+            for pixel_color in pixel_colors {
                 println!("{}", pixel_color.format_color(self.samples_per_pixel));
             }
         }

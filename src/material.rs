@@ -5,7 +5,7 @@ use crate::{
     vec3::{self, Color, Vec3},
 };
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn scatter(&self, ray: &Ray, hit: &HitRecord) -> Option<(Color, Ray)>;
 }
 
