@@ -1,4 +1,9 @@
-use crate::{hittable::HitRecord, ray::Ray, vec3::{self, Color, Vec3}};
+use crate::{
+    common,
+    hittable::HitRecord,
+    ray::Ray,
+    vec3::{self, Color, Vec3},
+};
 
 pub trait Material {
     fn scatter(&self, ray: &Ray, hit: &HitRecord) -> Option<(Color, Ray)>;
@@ -29,7 +34,7 @@ impl Material for Lambertian {
 
 pub struct Metal {
     albedo: Color,
-    fuzz: f64
+    fuzz: f64,
 }
 
 impl Metal {
@@ -50,9 +55,7 @@ impl Material for Metal {
             None // The ray is not scattered if it reflects back into the surface
         }
     }
-
 }
-
 
 pub struct Dielectric {
     refraction_index: f64,
@@ -66,7 +69,6 @@ impl Dielectric {
 
 impl Material for Dielectric {
     fn scatter(&self, ray: &Ray, hit: &HitRecord) -> Option<(Color, Ray)> {
-        let attenuation = Color::new(1.0, 1.0, 1.0); // No attenuation for dielectric
         let refraction_ratio = if hit.front_face {
             1.0 / self.refraction_index
         } else {
@@ -74,9 +76,19 @@ impl Material for Dielectric {
         };
 
         let unit_direction = ray.direction().normalize();
-        let refracted = unit_direction.refract(hit.normal, refraction_ratio);
-        let scattered = Ray::new(hit.point, refracted);
 
-        Some((attenuation, scattered))
+        let cos_theta = vec3::dot(-unit_direction, hit.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
+
+        let direction = if cannot_refract {
+            unit_direction.reflect(hit.normal)
+        } else {
+            unit_direction.refract(hit.normal, refraction_ratio)
+        };
+
+        let scattered = Ray::new(hit.point, direction);
+        Some((Color::new(1.0, 1.0, 1.0), scattered))
     }
 }
