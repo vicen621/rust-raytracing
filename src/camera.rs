@@ -5,18 +5,21 @@ use crate::{
     hittable::Hittable,
     hittable_list::HittableList,
     ray::Ray,
-    vec3::{Color, Point3, Vec3},
+    vec3::{cross, Color, Point3, Vec3},
 };
 
 pub struct Camera {
     image_width: u64,
     image_height: u64,
-    center: Point3,
+    origin: Point3,
     horizontal: Vec3,
     vertical: Vec3,
     upper_left_corner: Point3,
     samples_per_pixel: u64,
     max_depth: u64,
+    lens_radius: f64,
+    u: Vec3,
+    v: Vec3,
 }
 
 impl Camera {
@@ -25,27 +28,42 @@ impl Camera {
         image_width: u64,
         samples_per_pixel: u64,
         max_depth: u64,
+        vertical_fov: f64,
+        look_from: Point3,
+        look_at: Point3,
+        view_up: Vec3,
+        aperture: f64,
+        focus_distance: f64,
     ) -> Self {
         let image_height: u64 = (image_width as f64 / aspect_ratio) as u64;
-        let viewport_height = 2.0;
-        let viewport_width = aspect_ratio * viewport_height;
-        let focal_length = 1.0;
+        let theta = common::degrees_to_radians(vertical_fov);
+        let half_height = (theta / 2.0).tan();
+        let viewport_height = 2.0 * half_height;
+        let viewport_width = viewport_height * aspect_ratio;
 
-        let center = Point3::new(0.0, 0.0, 0.0);
-        let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-        let vertical = Vec3::new(0.0, -viewport_height, 0.0);
-        let upper_left_corner =
-            center - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+        let w = (look_from - look_at).normalize();
+        let u = cross(view_up, w).normalize();
+        let v = cross(w, u);
+
+        let origin = look_from;
+        let horizontal = focus_distance * viewport_width * u;
+        let vertical = focus_distance * viewport_height * -v;
+        let upper_left_corner = origin - (focus_distance * w) - horizontal / 2.0 - vertical / 2.0;
+
+        let lens_radius = aperture / 2.0;
 
         Camera {
             image_width,
             image_height,
-            center,
+            origin,
             horizontal,
             vertical,
             upper_left_corner,
             samples_per_pixel,
             max_depth,
+            lens_radius,
+            u,
+            v
         }
     }
 
@@ -81,15 +99,21 @@ impl Camera {
     }
 
     fn get_ray(&self, i: u64, j: u64) -> Ray {
+        // Construct a camera ray originating from the defocus disk and directed at a randomly
+        // sampled point around the pixel location i, j.
+
         let delta_horizontal = (i as f64 + common::random_double()) / (self.image_width - 1) as f64;
         let delta_vertical = (j as f64 + common::random_double()) / (self.image_height - 1) as f64;
 
+        let rd = self.lens_radius * Vec3::random_in_unit_disk();
+        let offset = self.u * rd.x() + self.v * rd.y();
+
         Ray::new(
-            self.center,
+            self.origin + offset,
             self.upper_left_corner
                 + delta_horizontal * self.horizontal
                 + delta_vertical * self.vertical
-                - self.center,
+                - self.origin - offset,
         )
     }
 

@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
-use crate::common;
+use crate::common::{self, random_double_range};
 
 #[derive(Copy, Clone, Default)]
 pub struct Vec3 {
@@ -10,7 +10,7 @@ pub type Point3 = Vec3;
 pub type Color = Vec3;
 
 impl Vec3 {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
+    pub const fn new(x: f64, y: f64, z: f64) -> Self {
         Vec3 { e: [x, y, z] }
     }
 
@@ -37,6 +37,22 @@ impl Vec3 {
             if len_squared < 1.0 && len_squared > 0.0 {
                 return v / len_squared.sqrt();
             }
+        }
+    }
+
+    pub fn random_in_unit_disk() -> Self {
+        loop {
+            let p = Vec3::new(
+                random_double_range(-1.0, 1.0),
+                random_double_range(-1.0, 1.0),
+                0.0,
+            );
+
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+
+            return p;
         }
     }
 
