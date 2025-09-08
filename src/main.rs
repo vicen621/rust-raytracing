@@ -68,7 +68,7 @@ fn main() {
     )));
 
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u64 = 1200;
+    const IMAGE_WIDTH: u64 = 1920;
     const SAMPLES_PER_PIXEL: u64 = 500;
     const MAX_DEPTH: u64 = 50;
     const VERTICAL_FOV: f64 = 20.0;
